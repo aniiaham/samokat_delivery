@@ -4,6 +4,7 @@ import classes from "./MealItemForm.module.css";
 import Input from "../../UI/Input";
 
 const MealItemForm = (props) => {
+  const [amoutIsValid, setAmountIsValid] = useState(true);
   const amountInputRef = useRef();
 
   const submitHandler = (event) => {
@@ -14,11 +15,13 @@ const MealItemForm = (props) => {
 
     if (
       enteredAmount.trim().length === 0 ||
-      enteredAmount < 1 ||
-      enteredAmount > 5
+      enteredAmountNumber < 1 ||
+      enteredAmountNumber > 5
     ) {
+      setAmountIsValid(false)
       return; 
     }
+    props.onAddToCart(enteredAmountNumber);
   };
 
   return (
@@ -36,6 +39,7 @@ const MealItemForm = (props) => {
         }}
       />
       <button>+ Add</button>
+      {!amoutIsValid &&  <p>Please enter a valid amount (1-5).</p>}
     </form>
   );
 };
