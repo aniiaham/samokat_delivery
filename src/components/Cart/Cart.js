@@ -1,13 +1,17 @@
-import { useContext, useState } from "react";
+import { useContext, useState, Fragment } from "react";
 
 import Modal from "../UI/Modal";
 import classes from "./Cart.module.css";
 import CartContext from "../../store/cart-context";
 import CartItem from "./CartItem";
 import Checkout from "./Checkout";
+import React from "react";
 
 const Cart = (props) => {
   const [isCheckout, setIsCheckout] = useState(false);
+  const [isSubbmitting, setIsSubbmitting] = useState(false);
+  const [didSubmit, setDidSubmit] = useState(false);
+
   console.log(isCheckout);
   const cartCtx = useContext(CartContext);
 
@@ -26,14 +30,20 @@ const Cart = (props) => {
     setIsCheckout(true);
   };
 
-  const submitOrderHandler = (userData) => {
-    fetch("https://react-demo-tasks-default-rtdb.firebaseio.com/orders.json", {
-      method: "POST",
-      body: JSON.stringify({
-        user: userData,
-        orderedItems: cartCtx.items,
-      }),
-    });
+  const submitOrderHandler = async (userData) => {
+    setIsSubbmitting(true);
+    await fetch(
+      "https://react-demo-tasks-default-rtdb.firebaseio.com/orders.json",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          user: userData,
+          orderedItems: cartCtx.items,
+        }),
+      }
+    );
+    setIsSubbmitting(false);
+    setDidSubmit(true);
   };
 
   const cartItems = (
@@ -63,8 +73,9 @@ const Cart = (props) => {
       )}
     </div>
   );
-  return (
-    <Modal onClose={props.onClose}>
+
+  const cartModalContent = (
+    <Fragment>
       {cartItems}
       <div className={classes.total}>
         <span>Total Amount</span>
@@ -74,8 +85,17 @@ const Cart = (props) => {
         <Checkout onConfirm={submitOrderHandler} onCancel={props.onClose} />
       )}
       {!isCheckout && modalActions}
-    </Modal>
+    </Fragment>
   );
+
+  const isSubmittingModalContent = <p>Sending order data...</p>;
+  const didSubmitModalContent = <p>Successfully sent the order!</p>;
+
+  return <Modal onClose={props.onClose}>
+    {!isSubbmitting && !didSubmit && cartModalContent}
+    {isSubbmitting && isSubmittingModalContent}
+    {!isSubbmitting && didSubmit && didSubmitModalContent}
+    </Modal>;
 };
 
 export default Cart;
